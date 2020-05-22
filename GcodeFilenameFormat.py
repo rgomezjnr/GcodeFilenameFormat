@@ -214,23 +214,10 @@ class GcodeFilenameFormat(OutputDevice, Extension):
         machine_manager = application.getMachineManager()
         print_settings = dict()
 
-        job_name = print_information.jobName
-        printer_name = global_stack.getName()
-        profile_name = machine_manager.activeQualityOrQualityChangesName
-        print_time = print_information.currentPrintTime.getDisplayString(DurationFormat.Format.ISO8601)
-        print_time_days = print_information.currentPrintTime.days
-        print_time_hours = print_information.currentPrintTime.hours
-        print_time_hours_all = print_time_days * 24 + print_time_hours
-        print_time_minutes = print_information.currentPrintTime.minutes
-        print_time_seconds = print_information.currentPrintTime.seconds
-        material_weight = print_information.materialWeights
-        material_length = print_information.materialLengths
-        material_cost = print_information.materialCosts
-        object_count = self.getObjectCount()
-        cura_version = Version(Application.getInstance().getVersion())
-
         tokens = re.split(r'\W+', filename_format)      # TODO: split on brackets only
+        Logger.log("d", "tokens = %s", tokens)
 
+        # Perform first pass of determining setting values from Cura stacks
         for t in tokens:
             stack1 = first_extruder_stack.material.getMetaData().get(t, "")
             stack2 = global_stack.userChanges.getProperty(t, "value")
@@ -245,6 +232,23 @@ class GcodeFilenameFormat(OutputDevice, Extension):
             else:
                 print_settings[t] = None
 
+        Logger.log("d", "print_settings = %s", print_settings)
+
+        job_name = print_information.jobName
+        printer_name = global_stack.getName()
+        profile_name = machine_manager.activeQualityOrQualityChangesName
+        print_time = print_information.currentPrintTime.getDisplayString(DurationFormat.Format.ISO8601)
+        print_time_days = print_information.currentPrintTime.days
+        print_time_hours = print_information.currentPrintTime.hours
+        print_time_hours_all = print_time_days * 24 + print_time_hours
+        print_time_minutes = print_information.currentPrintTime.minutes
+        print_time_seconds = print_information.currentPrintTime.seconds
+        material_weight = print_information.materialWeights
+        material_length = print_information.materialLengths
+        material_cost = print_information.materialCosts
+        object_count = self.getObjectCount()
+
+        # Manually set remaining setting values
         print_settings["base_name"] = file_name
         print_settings["job_name"] = job_name
         print_settings["printer_name"] = printer_name
@@ -264,6 +268,7 @@ class GcodeFilenameFormat(OutputDevice, Extension):
         for setting, value in print_settings.items():
             filename_format = filename_format.replace("[" + setting + "]", str(value))
 
+        # Sanitize filename for saving
         filename_format = re.sub('[^A-Za-z0-9._\-%°$£€\[\]\(\)\| ]+', '', filename_format)
         Logger.log("d", "filename_format = %s", filename_format)
 
