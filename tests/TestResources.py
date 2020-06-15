@@ -6,6 +6,8 @@ import sys
 import inspect
 import unittest
 
+#from mock import Mock
+
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0,parent_dir)
@@ -14,6 +16,7 @@ import Resources
 
 class TestResources(unittest.TestCase):
     #def test_getPrintsettings(self):
+    #    mock application
 
     def test_parseFilenameFormat_return_is_str(self):
         filename_format = "[base_name] [brand] [material] lw [line_width]mm lh [layer_height]mm if [infill_sparse_density]% ext1 [material_print_temperature]C bed [material_bed_temperature]C"
@@ -62,6 +65,19 @@ class TestResources(unittest.TestCase):
             "line_width":"1.0",
             "material_print_temperature":"220",
             "material_bed_temperature":"65"
+        }
+
+        output = Resources.parseFilenameFormat(filename_format, print_settings)
+
+        self.assertEqual(output, expected_output)
+
+    def test_parseFilenameFormat_symbols(self):
+        filename_format = "[base_name] [[material]] | Infill-[[infill_sparse_density]]% 0-9._-%°$£€#[]()|+"
+        expected_output = "paperclip [PLA] | Infill-[20]% 0-9._-%°$£€#[]()|+"
+        print_settings = {
+            "base_name":"paperclip",
+            "material":"PLA",
+            "infill_sparse_density":"20",
         }
 
         output = Resources.parseFilenameFormat(filename_format, print_settings)

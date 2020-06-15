@@ -82,7 +82,7 @@ def parseFilenameFormat(filename_format, print_settings) -> str:
         filename_format = filename_format.replace("[" + setting + "]", str(value))
 
     # Sanitize filename for saving
-    filename_format = re.sub('[^A-Za-z0-9._\-%°$£€\[\]\(\)\| ]+', '', filename_format)
+    filename_format = re.sub('[^A-Za-z0-9._\-%°$£€#\[\]\(\)\|\+ ]+', '', filename_format)
     #Logger.log("d", "filename_format = %s", filename_format)
 
     return filename_format
