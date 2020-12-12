@@ -63,6 +63,8 @@ class GcodeFilenameFormat(OutputDevice, Extension):
         self.addMenuItem("Help", self.help)
         self.help_window = None
 
+        self.printer_save_paths = dict()
+
     def requestWrite(self, nodes, file_name = None, limit_mimetypes = None, file_handler = None, **kwargs):
         application = cast(CuraApplication, Application.getInstance())
         machine_manager = application.getMachineManager()
@@ -133,6 +135,13 @@ class GcodeFilenameFormat(OutputDevice, Extension):
                 if file_name:
                     file_name += "." + item["extension"]
 
+        # Retrieve printer's last save path if possible
+        selected_printer = global_stack.getName()
+        try:
+            Application.getInstance().getPreferences().setValue("gcode_filename_format/dialog_save_path", self.printer_save_paths[selected_printer])
+        except(KeyError):
+            pass
+
         stored_directory = Application.getInstance().getPreferences().getValue("gcode_filename_format/dialog_save_path")
         dialog.setDirectory(stored_directory)
 
@@ -148,6 +157,11 @@ class GcodeFilenameFormat(OutputDevice, Extension):
 
         save_path = dialog.directory().absolutePath()
         Application.getInstance().getPreferences().setValue("gcode_filename_format/dialog_save_path", save_path)
+
+        # Update the printer's save path
+        self.printer_save_paths[selected_printer] = save_path
+        #Logger.log("d", "printer_save_paths")
+        #Logger.log("d", "%s" % self.printer_save_paths)
 
         selected_type = file_types[filters.index(dialog.selectedNameFilter())]
         Application.getInstance().getPreferences().setValue("gcode_filename_format/last_used_type", selected_type["mime_type"])
